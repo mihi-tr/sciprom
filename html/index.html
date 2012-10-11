@@ -2,7 +2,11 @@
 <html>
 <head>
 <title>Visualizing Scientific Promiscuity</title>
-
+<meta name="description" value="Scientific papers are rarely written by a
+single person. Usually many
+authors come together to work on a specific issue. This visualization uses
+data obtained from Pubmed to show
+collaboration between authors." />
 <style>
 #viz {
   width: 800px;
@@ -24,6 +28,33 @@ body {
   padding: 0px;
   margin: 0px;
   }
+.form {
+  margin-top: 20px;
+  }
+input#query {
+  border: 1px solid black;
+  padding: 2px;
+  border-radius: 2px;
+  width: 700px;
+  }
+input#query:focus {
+  box-shadow: inset 0px 0px 2px black;
+}
+.btn {
+  font-weight: bold;
+  color: white;
+  text-decoration: none;
+  padding: 2px;
+  background: blue;
+  border-radius: 2px;
+}
+
+.share A {
+  color: rgba(0,0,0,0.4);
+  }
+A {
+  color: black;
+  }
 </style>
 </head>
 <body>
@@ -31,20 +62,24 @@ body {
 <div class="container">
 <h1>Visualizing Scientific Promiscuity</h1>
 <div id="viz"></div>
+<h2>Create your own</h2>
+Discover your own network of scientific promiscuity: Enter a Pubmed search
+term that lists all your papers below.
+<div class="form">
+<input id="query" type="text" name="query"></input>
+<a class="btn" href="#" onclick="goquery()">GO</a>
+</div>
+<div class="share">
+<a id="permalink" href="">permalink</a>
+</div>
 <h2>About</h2>
 Scientific papers are rarely written by a single person. Usually many
 authors come together to work on a specific issue. This visualization uses
 data obtained from <a href="http://pubmed.com">Pubmed</a> to show
 collaboration between authors. The sourcecode for the visualization as well
 as the backend can be obtained from <a href="http://github.com/mihi-tr/sciprom">github</a>
-
-<h2>Create your own</h2>
-Discover your own network of scientific promiscuity: Enter a Pubmed search
-term that lists all your papers below.
-<div class="form">
-<input type="text" name="query"></input>
-<a class="btn" href="#" onclick="">GO</a>
-</div>
+<br/>
+Created by <a href="http://tentacleriot.eu/">Michael Bauer</a>.
 </div>
 <script>
 var w=800,
@@ -60,79 +95,98 @@ var query="Bauer M[au] AND (Liao R[au] OR Podesser BK[au] OR Matt[au] OR Leopard
 else {
   var query=window.location.hash.substr(1);
   }
-var svg=d3.select("#viz").append("svg").attr("width",w)
-  .attr("height",h);
+
+
 
 var authors;
 
-d3.json(api+"/?query="+query,function(data) {
-  console.log(data);
-  var permute=function (a) {
-    var fn=function (active,rest,ret) {
-      if (!rest.length) {  
-        return ret;
-        }
-      else {
-        ret.push(
-        rest.map(function(x) {
-          return [active, x] 
-          }))
-        return fn(rest[0],rest.slice(1),ret) 
-        }
-      }
-    return d3.merge(fn(a[0],a.slice(1),[]));
-    }
-  splines=d3.merge(data.map(function(x) {
-    return (permute( x.authors.map(function(x) { return x.slug})  ))
-    }))
+function goquery() {
+  var query=d3.select("#query")[0][0].value;
+  visualize(query);
+  }
+  
+visualize(query);
+function visualize(query) {
 
-  authors=d3.nest().key(function(x) {return x.slug})
-    .map(d3.merge(data.map(function(x) { return x.authors }), data))
-  deg=2*Math.PI/d3.keys(authors).length
-  degree=360/d3.keys(authors).length
-  svg.append('svg:g') 
-   .attr('id','center-node')
-   .attr('x',w/2)
-   .attr('y',h/2);
-  svg.selectAll('g.node')
-    .data(d3.keys(authors)).enter()
-    .append('svg:g')
-    .attr('class','node')
-    .attr('x',function(d, i) {
-       return w/2+rx*Math.cos(deg*i)
+  var mklink=function(lnk) {
+    return lnk.replace(/ /g,"%20");
+    }
+  d3.select("#query")
+    .attr('value',query);
+  d3.select("#permalink")
+    .attr("href","/#"+mklink(query));
+  d3.select("#viz svg").remove();
+  var svg=d3.select("#viz").append("svg").attr("width",w)
+    .attr("height",h);
+  d3.json(api+"/?query="+query,function(data) {
+    var permute=function (a) {
+      var fn=function (active,rest,ret) {
+        if (!rest.length) {  
+          return ret;
+          }
+        else {
+          ret.push(
+          rest.map(function(x) {
+            return [active, x] 
+            }))
+          return fn(rest[0],rest.slice(1),ret) 
+          }
+        }
+      return d3.merge(fn(a[0],a.slice(1),[]));
+      }
+    splines=d3.merge(data.map(function(x) {
+      return (permute( x.authors.map(function(x) { return x.slug})  ))
+      }))
+
+    authors=d3.nest().key(function(x) {return x.slug})
+      .map(d3.merge(data.map(function(x) { return x.authors }), data))
+    deg=2*Math.PI/d3.keys(authors).length
+    degree=360/d3.keys(authors).length
+    svg.append('svg:g') 
+    .attr('id','center-node')
+    .attr('x',w/2)
+    .attr('y',h/2);
+    svg.selectAll('g.node')
+      .data(d3.keys(authors)).enter()
+      .append('svg:g')
+      .attr('class','node')
+      .attr('x',function(d, i) {
+        return w/2+rx*Math.cos(deg*i)
+        })
+      .attr('y',function(d, i) {
+      return h/2+ry*Math.sin(deg*i)
       })
-    .attr('y',function(d, i) {
-     return h/2+ry*Math.sin(deg*i)
-     })
-    .attr('id',function(d) { return d})
-    .attr('transform', function(d, i) { return ("translate("+  
-    (w/2+rx*Math.cos(deg*i)) +","+ 
-    (h/2+ry*Math.sin(deg*i)) 
-      +")")})
-    .append('svg:text')
-    .attr('transform', function(d, i) { return ("rotate("+ degree*i +")")})
-    .attr('class','node')
-    .attr('x',5)
-    .attr('y',5)
-    .attr('font-size','80%')
-    .attr('font-family','sans-serif')
-    .text(function(d) {
-      return authors[d][0].Name })
-  var bundle=d3.layout.bundle();    
-  var line=d3.svg.line()
-    .x(function(d) { return svg.select("#"+d)[0][0].attributes.x.value})
-    .y(function(d) { return svg.select("#"+d)[0][0].attributes.y.value})
-    .interpolate("cardinal")
-    .tension(0.85);
-  svg.selectAll('path.spline')
-    .data(splines).enter()
-    .append('svg:path')
-    .attr('class','spline')
-    .attr('id',function(d,i) { return d[0]+"-"+d[1]+"-"+i })
-    .attr('d',line)
-    .attr('width',1)
-    .attr('stroke','rgba(0,0,0,0.2)');
+      .attr('id',function(d) { return d})
+      .attr('transform', function(d, i) { return ("translate("+  
+      (w/2+rx*Math.cos(deg*i)) +","+ 
+      (h/2+ry*Math.sin(deg*i)) 
+        +")")})
+      .append('svg:text')
+      .attr('transform', function(d, i) { return ("rotate("+ degree*i +")")})
+      .attr('class','node')
+      .attr('x',5)
+      .attr('y',5)
+      .attr('font-size','80%')
+      .attr('font-family','sans-serif')
+      .text(function(d) {
+        return authors[d][0].Name })
+    var line=d3.svg.line()
+      .x(function(d) { return svg.select("#"+d)[0][0].attributes.x.value})
+      .y(function(d) { return svg.select("#"+d)[0][0].attributes.y.value})
+      .interpolate("cardinal-open")
+      .tension(0.85);
+    svg.selectAll('path.spline')
+      .data(splines).enter()
+      .append('svg:path')
+      .attr('class','spline')
+      .attr('id',function(d,i) { return d[0]+"-"+d[1]+"-"+i })
+      .attr('d',line)
+      .attr('width',1)
+      .attr('color','none')
+      .attr('fill','none')
+      .attr('stroke','rgba(0,0,0,0.2)');
   })
+}  
 
 </script>
 </body>
