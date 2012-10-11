@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Visualizing Scientific Promiscuity</title>
+</head>
+<body>
+<script src="js/d3.v2.min.js"></script>
+<div id="viz"></div>
+<script>
+var w=1024,
+  h=800;
+  ry = h/4;
+  rx = w/4;
+
+var api="http://localhost:9876";
+var query="Bauer M[au] and Liao R[au]";
+var svg=d3.select("#viz").append("svg").attr("width",w)
+  .attr("height",h);
+
+var authors;
+var cluster = d3.layout.cluster()
+    .size([360, ry - 120])
+    .sort(function(a, b) { return d3.ascending(a.key, b.key); });
+
+d3.json(api+"/?query="+query,function(data) {
+  console.log(data)
+  authors=d3.nest().key(function(x) {return x.slug})
+    .map(d3.merge(data.map(function(x) { return x.authors }), data))
+  deg=360/d3.keys(authors).length
+  svg.selectAll('g')
+    .data(d3.keys(authors)).enter()
+    .append('svg:g')
+    .attr('transform','translate('+w/2+','+h/2+')')
+    .append('svg:text')
+    .attr('transform', function(d, i) { return ("rotate("+ deg*i +")")})
+    .attr('x',rx)
+    .attr('id',function(d) { return d})
+    .text(function(d) {
+      return authors[d][0].Name })
+    
+  console.log(authors)
+  })
+
+</script>
+</body>
+</html>

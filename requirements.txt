@@ -1,0 +1,4 @@
+Beaker==1.6.4
+Unidecode==0.04.9
+biopython==1.60
+wsgiref==0.1.2
