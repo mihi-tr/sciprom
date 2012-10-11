@@ -5,6 +5,10 @@ This is a simple interface to pubmed allowing you to visualize your
 scientific promiscuity. It looks at how many co-authors you collaborated
 and how they are linked together.
 
+You can see the visualization `here`_
+
+.. _here: http://sciprom.tentacleriot.eu/
+
 Basic Principles
 ----------------
 
