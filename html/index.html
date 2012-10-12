@@ -63,10 +63,11 @@ A {
   }
 </style>
 </head>
-<body>
+<body itemscope itemtype="http://schema.org/WebPage">
 <script src="js/d3.v2.min.js"></script>
 <div class="container">
-<h1>Visualizing Scientific Promiscuity</h1>
+<h1 itemprop="name">Visualizing Scientific Promiscuity</h1>
+<img itemprop="image" src="sample.png" style="display:none" />
 <div id="viz"></div>
 <h2>Create your own</h2>
 Discover your own network of scientific promiscuity: Enter a Pubmed search
@@ -79,13 +80,16 @@ term that lists all your papers below.
 <a id="permalink" href="">permalink</a>
 </div>
 <h2>About</h2>
+<p itemprop="description">
 Scientific papers are rarely written by a single person. Usually many
 authors come together to work on a specific issue. This visualization uses
 data obtained from <a href="http://pubmed.com">Pubmed</a> to show
 collaboration between authors. The sourcecode for the visualization as well
 as the backend can be obtained from <a href="http://github.com/mihi-tr/sciprom">github</a>
-<br/>
+</p>
+<p>
 Created by <a href="http://tentacleriot.eu/">Michael Bauer</a>.
+</p>
 </div>
 <script>
 var w=800,
